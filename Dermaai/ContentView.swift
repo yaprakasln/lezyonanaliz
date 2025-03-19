@@ -414,6 +414,9 @@ struct RegisterView: View {
     @State private var email = ""
     @State private var sifre = ""
     @State private var sifreTekrar = ""
+    @State private var doctorTitle = ""
+    @State private var doctorSpecialty = ""
+    @State private var doctorPhone = ""
     @State private var showError = false
     @State private var errorMessage = ""
     @State private var isLoading = false
@@ -532,6 +535,97 @@ struct RegisterView: View {
                                 .padding(.leading, 10)
                                 
                                 TextField("Ad Soyad", text: $adSoyad)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(AppColors.textColor)
+                            }
+                            .frame(height: 55)
+                            .background(Color.white)
+                            .cornerRadius(15)
+                            .shadow(color: AppColors.shadowColor, radius: 5)
+                        }
+                        .padding(.horizontal, 20)
+                        
+                        // Unvan
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Unvan")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(AppColors.textColor)
+                                .padding(.leading, 25)
+                            
+                            HStack(spacing: 15) {
+                                ZStack {
+                                    Circle()
+                                        .fill(AppColors.accentColor.opacity(0.1))
+                                        .frame(width: 40, height: 40)
+                                    
+                                    Image(systemName: "star.fill")
+                                        .foregroundColor(AppColors.accentColor)
+                                        .font(.system(size: 18))
+                                }
+                                .padding(.leading, 10)
+                                
+                                TextField("Unvan (Dr., Prof. Dr., vb.)", text: $doctorTitle)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(AppColors.textColor)
+                            }
+                            .frame(height: 55)
+                            .background(Color.white)
+                            .cornerRadius(15)
+                            .shadow(color: AppColors.shadowColor, radius: 5)
+                        }
+                        .padding(.horizontal, 20)
+                        
+                        // Uzmanlık
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Uzmanlık")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(AppColors.textColor)
+                                .padding(.leading, 25)
+                            
+                            HStack(spacing: 15) {
+                                ZStack {
+                                    Circle()
+                                        .fill(AppColors.accentColor.opacity(0.1))
+                                        .frame(width: 40, height: 40)
+                                    
+                                    Image(systemName: "stethoscope")
+                                        .foregroundColor(AppColors.accentColor)
+                                        .font(.system(size: 18))
+                                }
+                                .padding(.leading, 10)
+                                
+                                TextField("Uzmanlık Alanı", text: $doctorSpecialty)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(AppColors.textColor)
+                            }
+                            .frame(height: 55)
+                            .background(Color.white)
+                            .cornerRadius(15)
+                            .shadow(color: AppColors.shadowColor, radius: 5)
+                        }
+                        .padding(.horizontal, 20)
+                        
+                        // Telefon
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Telefon")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(AppColors.textColor)
+                                .padding(.leading, 25)
+                            
+                            HStack(spacing: 15) {
+                                ZStack {
+                                    Circle()
+                                        .fill(AppColors.accentColor.opacity(0.1))
+                                        .frame(width: 40, height: 40)
+                                    
+                                    Image(systemName: "phone.fill")
+                                        .foregroundColor(AppColors.accentColor)
+                                        .font(.system(size: 18))
+                                }
+                                .padding(.leading, 10)
+                                
+                                TextField("Telefon Numarası", text: $doctorPhone)
+                                    .keyboardType(.phonePad)
                                     .font(.system(size: 16))
                                     .foregroundColor(AppColors.textColor)
                             }
@@ -701,12 +795,15 @@ struct RegisterView: View {
                 isLoading = false
             } else if let user = authResult?.user {
                 let userData: [String: Any] = [
-                    "adSoyad": adSoyad,
+                    "name": adSoyad,
+                    "title": doctorTitle,
+                    "specialty": doctorSpecialty,
+                    "phone": doctorPhone,
                     "email": email,
                     "createdAt": ServerValue.timestamp()
                 ]
                 
-                Database.database().reference().child("users").child(user.uid).setValue(userData) { error, _ in
+                Database.database().reference().child("doctors").child(user.uid).setValue(userData) { error, _ in
                     isLoading = false
                     if let error = error {
                         errorMessage = error.localizedDescription
@@ -724,6 +821,13 @@ struct DoctorDashboardView: View {
     @Binding var currentView: String
     @State private var showAlert = false
     @State private var alertMessage = ""
+    @State private var doctorName = ""
+    @State private var doctorTitle = ""
+    @State private var doctorSpecialty = ""
+    @State private var doctorPhone = ""
+    @State private var doctorEmail = ""
+    @State private var isLoading = false
+    @State private var showAccountSettings = false
     
     var body: some View {
         ZStack {
@@ -791,12 +895,26 @@ struct DoctorDashboardView: View {
                             .foregroundColor(AppColors.textColor.opacity(0.7))
                     }
                     Spacer()
-                    Button(action: {
-                        currentView = "login"
-                    }) {
-                        Image(systemName: "rectangle.portrait.and.arrow.right")
-                            .font(.system(size: 22))
-                            .foregroundColor(AppColors.accentColor)
+                    HStack(spacing: 20) {
+                        Button(action: { showAccountSettings = true }) {
+                            Image(systemName: "person.circle.fill")
+                                .font(.system(size: 24))
+                                .foregroundColor(AppColors.accentColor)
+                        }
+                        
+                        Button(action: {
+                            do {
+                                try Auth.auth().signOut()
+                                currentView = "login"
+                            } catch {
+                                alertMessage = error.localizedDescription
+                                showAlert = true
+                            }
+                        }) {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                                .font(.system(size: 22))
+                                .foregroundColor(AppColors.accentColor)
+                        }
                     }
                 }
                 .padding(.horizontal, 25)
@@ -850,6 +968,38 @@ struct DoctorDashboardView: View {
                 .padding(.horizontal, 25)
                 
                 Spacer()
+            }
+        }
+        .alert(isPresented: $showAlert) {
+            Alert(title: Text("Hata"), message: Text(alertMessage), dismissButton: .default(Text("Tamam")))
+        }
+        .sheet(isPresented: $showAccountSettings) {
+            AccountSettingsView(
+                isPresented: $showAccountSettings,
+                doctorName: $doctorName,
+                doctorTitle: $doctorTitle,
+                doctorSpecialty: $doctorSpecialty,
+                doctorPhone: $doctorPhone,
+                doctorEmail: $doctorEmail,
+                isLoading: $isLoading
+            )
+        }
+        .onAppear {
+            loadDoctorProfile()
+        }
+    }
+    
+    private func loadDoctorProfile() {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+        
+        let ref = Database.database().reference().child("doctors").child(userId)
+        ref.observeSingleEvent(of: .value) { snapshot in
+            if let value = snapshot.value as? [String: Any] {
+                doctorName = value["name"] as? String ?? ""
+                doctorTitle = value["title"] as? String ?? ""
+                doctorSpecialty = value["specialty"] as? String ?? ""
+                doctorPhone = value["phone"] as? String ?? ""
+                doctorEmail = value["email"] as? String ?? ""
             }
         }
     }
@@ -1131,6 +1281,458 @@ struct ResetPasswordView: View {
                 showSuccess = true
             }
         }
+    }
+}
+
+struct AccountSettingsView: View {
+    @Binding var isPresented: Bool
+    @Binding var doctorName: String
+    @Binding var doctorTitle: String
+    @Binding var doctorSpecialty: String
+    @Binding var doctorPhone: String
+    @Binding var doctorEmail: String
+    @Binding var isLoading: Bool
+    @State private var showError = false
+    @State private var errorMessage = ""
+    @State private var showSuccess = false
+    @State private var currentPassword = ""
+    @State private var newPassword = ""
+    @State private var confirmPassword = ""
+    @State private var showPasswordFields = false
+    
+    var body: some View {
+        ZStack {
+            // Modern gradient background
+            LinearGradient(
+                gradient: Gradient(colors: [AppColors.gradient1, AppColors.gradient2]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            ScrollView {
+                VStack(spacing: 30) {
+                    // Header
+                    HStack {
+                        Button(action: { isPresented = false }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 24))
+                                .foregroundColor(AppColors.accentColor)
+                        }
+                        Spacer()
+                        Text("Hesap Ayarları")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(AppColors.accentColor)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    
+                    // Profile Icon
+                    Image(systemName: "person.circle.fill")
+                        .font(.system(size: 80))
+                        .foregroundColor(AppColors.accentColor)
+                        .padding(.top, 20)
+                    
+                    // Form Fields
+                    VStack(spacing: 25) {
+                        // Ad Soyad
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Ad Soyad")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(AppColors.textColor)
+                                .padding(.leading, 25)
+                            
+                            HStack(spacing: 15) {
+                                ZStack {
+                                    Circle()
+                                        .fill(AppColors.accentColor.opacity(0.1))
+                                        .frame(width: 40, height: 40)
+                                    
+                                    Image(systemName: "person.fill")
+                                        .foregroundColor(AppColors.accentColor)
+                                        .font(.system(size: 18))
+                                }
+                                .padding(.leading, 10)
+                                
+                                TextField("Ad Soyad", text: $doctorName)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(AppColors.textColor)
+                            }
+                            .frame(height: 55)
+                            .background(Color.white)
+                            .cornerRadius(15)
+                            .shadow(color: AppColors.shadowColor, radius: 5)
+                        }
+                        .padding(.horizontal, 20)
+                        
+                        // E-posta
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("E-posta")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(AppColors.textColor)
+                                .padding(.leading, 25)
+                            
+                            HStack(spacing: 15) {
+                                ZStack {
+                                    Circle()
+                                        .fill(AppColors.accentColor.opacity(0.1))
+                                        .frame(width: 40, height: 40)
+                                    
+                                    Image(systemName: "envelope.fill")
+                                        .foregroundColor(AppColors.accentColor)
+                                        .font(.system(size: 18))
+                                }
+                                .padding(.leading, 10)
+                                
+                                TextField("E-posta adresiniz", text: $doctorEmail)
+                                    .keyboardType(.emailAddress)
+                                    .autocapitalization(.none)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(AppColors.textColor)
+                            }
+                            .frame(height: 55)
+                            .background(Color.white)
+                            .cornerRadius(15)
+                            .shadow(color: AppColors.shadowColor, radius: 5)
+                        }
+                        .padding(.horizontal, 20)
+                        
+                        // Unvan
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Unvan")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(AppColors.textColor)
+                                .padding(.leading, 25)
+                            
+                            HStack(spacing: 15) {
+                                ZStack {
+                                    Circle()
+                                        .fill(AppColors.accentColor.opacity(0.1))
+                                        .frame(width: 40, height: 40)
+                                    
+                                    Image(systemName: "star.fill")
+                                        .foregroundColor(AppColors.accentColor)
+                                        .font(.system(size: 18))
+                                }
+                                .padding(.leading, 10)
+                                
+                                TextField("Unvan (Dr., Prof. Dr., vb.)", text: $doctorTitle)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(AppColors.textColor)
+                            }
+                            .frame(height: 55)
+                            .background(Color.white)
+                            .cornerRadius(15)
+                            .shadow(color: AppColors.shadowColor, radius: 5)
+                        }
+                        .padding(.horizontal, 20)
+                        
+                        // Uzmanlık
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Uzmanlık")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(AppColors.textColor)
+                                .padding(.leading, 25)
+                            
+                            HStack(spacing: 15) {
+                                ZStack {
+                                    Circle()
+                                        .fill(AppColors.accentColor.opacity(0.1))
+                                        .frame(width: 40, height: 40)
+                                    
+                                    Image(systemName: "stethoscope")
+                                        .foregroundColor(AppColors.accentColor)
+                                        .font(.system(size: 18))
+                                }
+                                .padding(.leading, 10)
+                                
+                                TextField("Uzmanlık Alanı", text: $doctorSpecialty)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(AppColors.textColor)
+                            }
+                            .frame(height: 55)
+                            .background(Color.white)
+                            .cornerRadius(15)
+                            .shadow(color: AppColors.shadowColor, radius: 5)
+                        }
+                        .padding(.horizontal, 20)
+                        
+                        // Telefon
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Telefon")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(AppColors.textColor)
+                                .padding(.leading, 25)
+                            
+                            HStack(spacing: 15) {
+                                ZStack {
+                                    Circle()
+                                        .fill(AppColors.accentColor.opacity(0.1))
+                                        .frame(width: 40, height: 40)
+                                    
+                                    Image(systemName: "phone.fill")
+                                        .foregroundColor(AppColors.accentColor)
+                                        .font(.system(size: 18))
+                                }
+                                .padding(.leading, 10)
+                                
+                                TextField("Telefon Numarası", text: $doctorPhone)
+                                    .keyboardType(.phonePad)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(AppColors.textColor)
+                            }
+                            .frame(height: 55)
+                            .background(Color.white)
+                            .cornerRadius(15)
+                            .shadow(color: AppColors.shadowColor, radius: 5)
+                        }
+                        .padding(.horizontal, 20)
+                        
+                        // Şifre Değiştirme Butonu
+                        Button(action: { showPasswordFields.toggle() }) {
+                            HStack {
+                                Image(systemName: "lock.fill")
+                                Text("Şifre Değiştir")
+                            }
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(AppColors.accentColor)
+                        }
+                        .padding(.top, 10)
+                        
+                        if showPasswordFields {
+                            // Mevcut Şifre
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Mevcut Şifre")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(AppColors.textColor)
+                                    .padding(.leading, 25)
+                                
+                                HStack(spacing: 15) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(AppColors.accentColor.opacity(0.1))
+                                            .frame(width: 40, height: 40)
+                                        
+                                        Image(systemName: "lock.fill")
+                                            .foregroundColor(AppColors.accentColor)
+                                            .font(.system(size: 18))
+                                    }
+                                    .padding(.leading, 10)
+                                    
+                                    SecureField("Mevcut şifreniz", text: $currentPassword)
+                                        .font(.system(size: 16))
+                                        .foregroundColor(AppColors.textColor)
+                                }
+                                .frame(height: 55)
+                                .background(Color.white)
+                                .cornerRadius(15)
+                                .shadow(color: AppColors.shadowColor, radius: 5)
+                            }
+                            .padding(.horizontal, 20)
+                            
+                            // Yeni Şifre
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Yeni Şifre")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(AppColors.textColor)
+                                    .padding(.leading, 25)
+                                
+                                HStack(spacing: 15) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(AppColors.accentColor.opacity(0.1))
+                                            .frame(width: 40, height: 40)
+                                        
+                                        Image(systemName: "lock.fill")
+                                            .foregroundColor(AppColors.accentColor)
+                                            .font(.system(size: 18))
+                                    }
+                                    .padding(.leading, 10)
+                                    
+                                    SecureField("Yeni şifreniz", text: $newPassword)
+                                        .font(.system(size: 16))
+                                        .foregroundColor(AppColors.textColor)
+                                }
+                                .frame(height: 55)
+                                .background(Color.white)
+                                .cornerRadius(15)
+                                .shadow(color: AppColors.shadowColor, radius: 5)
+                            }
+                            .padding(.horizontal, 20)
+                            
+                            // Yeni Şifre Tekrar
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Yeni Şifre Tekrar")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(AppColors.textColor)
+                                    .padding(.leading, 25)
+                                
+                                HStack(spacing: 15) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(AppColors.accentColor.opacity(0.1))
+                                            .frame(width: 40, height: 40)
+                                        
+                                        Image(systemName: "lock.fill")
+                                            .foregroundColor(AppColors.accentColor)
+                                            .font(.system(size: 18))
+                                    }
+                                    .padding(.leading, 10)
+                                    
+                                    SecureField("Yeni şifrenizi tekrar girin", text: $confirmPassword)
+                                        .font(.system(size: 16))
+                                        .foregroundColor(AppColors.textColor)
+                                }
+                                .frame(height: 55)
+                                .background(Color.white)
+                                .cornerRadius(15)
+                                .shadow(color: AppColors.shadowColor, radius: 5)
+                            }
+                            .padding(.horizontal, 20)
+                        }
+                    }
+                    .padding(.top, 30)
+                    
+                    // Update Button
+                    Button(action: updateAccount) {
+                        HStack {
+                            if isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .scaleEffect(0.8)
+                            } else {
+                                Text("Değişiklikleri Kaydet")
+                                    .font(.system(size: 16, weight: .semibold))
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 18))
+                            }
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 55)
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [AppColors.accentColor, AppColors.accentColor.opacity(0.8)]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(15)
+                        .shadow(color: AppColors.accentColor.opacity(0.3), radius: 10)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 30)
+                    .disabled(isLoading)
+                }
+            }
+        }
+        .alert(isPresented: $showError) {
+            Alert(title: Text("Hata"), message: Text(errorMessage), dismissButton: .default(Text("Tamam")))
+        }
+        .alert(isPresented: $showSuccess) {
+            Alert(
+                title: Text("Başarılı"),
+                message: Text("Hesap bilgileriniz başarıyla güncellendi."),
+                dismissButton: .default(Text("Tamam")) {
+                    isPresented = false
+                }
+            )
+        }
+    }
+    
+    private func updateAccount() {
+        guard let user = Auth.auth().currentUser else { return }
+        
+        isLoading = true
+        
+        // E-posta değişikliği varsa
+        if doctorEmail != user.email {
+            user.updateEmail(to: doctorEmail) { error in
+                if let error = error {
+                    errorMessage = error.localizedDescription
+                    showError = true
+                    isLoading = false
+                    return
+                }
+                updateProfileData()
+            }
+        } else {
+            updateProfileData()
+        }
+        
+        // Şifre değişikliği varsa
+        if !newPassword.isEmpty {
+            if newPassword == confirmPassword {
+                user.updatePassword(to: newPassword) { error in
+                    if let error = error {
+                        errorMessage = error.localizedDescription
+                        showError = true
+                        isLoading = false
+                    }
+                }
+            } else {
+                errorMessage = "Yeni şifreler eşleşmiyor"
+                showError = true
+                isLoading = false
+            }
+        }
+    }
+    
+    private func updateProfileData() {
+        guard let userId = Auth.auth().currentUser?.uid else { return }
+        
+        let ref = Database.database().reference().child("doctors").child(userId)
+        let profileData: [String: Any] = [
+            "name": doctorName,
+            "title": doctorTitle,
+            "specialty": doctorSpecialty,
+            "phone": doctorPhone,
+            "email": doctorEmail,
+            "updatedAt": ServerValue.timestamp()
+        ]
+        
+        ref.updateChildValues(profileData) { error, _ in
+            isLoading = false
+            if let error = error {
+                errorMessage = error.localizedDescription
+                showError = true
+            } else {
+                showSuccess = true
+            }
+        }
+    }
+}
+
+// Doktor kartı için yeni bir view
+struct DoctorCard: View {
+    let name: String
+    let title: String
+    let specialty: String
+    
+    var formattedName: String {
+        if title.isEmpty {
+            return "Dr. \(name)"
+        } else {
+            return "\(title) \(name)"
+        }
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(formattedName)
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(AppColors.accentColor)
+            
+            Text(specialty)
+                .font(.system(size: 16))
+                .foregroundColor(AppColors.textColor.opacity(0.7))
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white)
+        .cornerRadius(15)
+        .shadow(color: AppColors.shadowColor, radius: 5)
     }
 }
 
