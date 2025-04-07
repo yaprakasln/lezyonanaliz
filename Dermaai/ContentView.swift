@@ -828,78 +828,90 @@ struct DoctorDashboardView: View {
     @State private var doctorEmail = ""
     @State private var isLoading = false
     @State private var showAccountSettings = false
+    @State private var selectedTab = 0
+    @State private var showGreeting = false
     
     var body: some View {
         ZStack {
-            // Modern gradient background
+            // Modern gradient background with animated circles
+            GeometryReader { geometry in
+                ZStack {
+                    // Base gradient
             LinearGradient(
-                gradient: Gradient(colors: [AppColors.gradient1, AppColors.gradient2]),
+                        gradient: Gradient(colors: [
+                            Color(red: 240/255, green: 244/255, blue: 255/255),
+                            Color(red: 250/255, green: 252/255, blue: 255/255)
+                        ]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
             
-            // Modern background pattern
-            GeometryReader { geometry in
-                ZStack {
-                    // Subtle grid pattern
-                    Path { path in
-                        let spacing: CGFloat = 40
-                        for x in stride(from: 0, through: geometry.size.width, by: spacing) {
-                            path.move(to: CGPoint(x: x, y: 0))
-                            path.addLine(to: CGPoint(x: x, y: geometry.size.height))
-                        }
-                        for y in stride(from: 0, through: geometry.size.height, by: spacing) {
-                            path.move(to: CGPoint(x: 0, y: y))
-                            path.addLine(to: CGPoint(x: geometry.size.width, y: y))
-                        }
-                    }
-                    .stroke(AppColors.accentColor.opacity(0.05), lineWidth: 1)
-                    
-                    // Modern shapes
+                    // Animated background shapes
                     Circle()
                         .fill(
                             LinearGradient(
-                                gradient: Gradient(colors: [AppColors.accentColor.opacity(0.1), AppColors.accentColor.opacity(0.05)]),
+                                gradient: Gradient(colors: [
+                                    AppColors.accentColor.opacity(0.1),
+                                    AppColors.accentColor.opacity(0.05)
+                                ]),
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
                         )
                         .frame(width: geometry.size.width * 0.8)
-                        .position(x: geometry.size.width * 0.8, y: geometry.size.height * 0.2)
-                        .blur(radius: 20)
+                        .offset(x: geometry.size.width * 0.3, y: -geometry.size.height * 0.2)
+                        .blur(radius: 30)
                     
                     Circle()
                         .fill(
                             LinearGradient(
-                                gradient: Gradient(colors: [AppColors.secondaryColor.opacity(0.1), AppColors.secondaryColor.opacity(0.05)]),
+                                gradient: Gradient(colors: [
+                                    AppColors.secondaryColor.opacity(0.1),
+                                    AppColors.secondaryColor.opacity(0.05)
+                                ]),
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
                         )
                         .frame(width: geometry.size.width * 0.6)
-                        .position(x: geometry.size.width * 0.2, y: geometry.size.height * 0.8)
-                        .blur(radius: 20)
+                        .offset(x: -geometry.size.width * 0.3, y: geometry.size.height * 0.2)
+                        .blur(radius: 30)
                 }
             }
             
-            VStack(spacing: 30) {
-                // Header
+            ScrollView {
+                VStack(spacing: 25) {
+                    // Modern Header with Profile
                 HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("DermaAI")
-                            .font(.system(size: 32, weight: .bold))
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Hoş Geldiniz,")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(Color.gray.opacity(0.8))
+                                .opacity(showGreeting ? 1 : 0)
+                                .animation(.easeIn(duration: 0.5).delay(0.3), value: showGreeting)
+                            
+                            Text(doctorTitle.isEmpty ? "Dr. \(doctorName)" : "\(doctorTitle) \(doctorName)")
+                                .font(.system(size: 24, weight: .bold))
                             .foregroundColor(AppColors.accentColor)
-                        Text("Dermatoloji Yapay Zeka Asistanı")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(AppColors.textColor.opacity(0.7))
+                                .opacity(showGreeting ? 1 : 0)
+                                .animation(.easeIn(duration: 0.5).delay(0.5), value: showGreeting)
                     }
+                        
                     Spacer()
-                    HStack(spacing: 20) {
+                        
+                        HStack(spacing: 16) {
                         Button(action: { showAccountSettings = true }) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.white)
+                                        .frame(width: 44, height: 44)
+                                        .shadow(color: AppColors.shadowColor, radius: 8)
+                                    
                             Image(systemName: "person.circle.fill")
-                                .font(.system(size: 24))
+                                        .font(.system(size: 22))
                                 .foregroundColor(AppColors.accentColor)
+                                }
                         }
                         
                         Button(action: {
@@ -911,63 +923,104 @@ struct DoctorDashboardView: View {
                                 showAlert = true
                             }
                         }) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.white)
+                                        .frame(width: 44, height: 44)
+                                        .shadow(color: AppColors.shadowColor, radius: 8)
+                                    
                             Image(systemName: "rectangle.portrait.and.arrow.right")
-                                .font(.system(size: 22))
-                                .foregroundColor(AppColors.accentColor)
+                                        .font(.system(size: 20))
+                                        .foregroundColor(AppColors.secondaryColor)
+                                }
                         }
                     }
                 }
                 .padding(.horizontal, 25)
                 .padding(.top, 60)
                 
-                // Main menu grid
-                LazyVGrid(columns: [
+                    // Quick Actions
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 16) {
+                            QuickActionButton(
+                                title: "Yeni Randevu",
+                                icon: "calendar.badge.plus",
+                                color: AppColors.accentColor
+                            ) {
+                                // Yeni randevu action
+                            }
+                            
+                            QuickActionButton(
+                                title: "Hasta Ara",
+                                icon: "magnifyingglass",
+                                color: AppColors.secondaryColor
+                            ) {
+                                // Hasta arama action
+                            }
+                            
+                            QuickActionButton(
+                                title: "İstatistikler",
+                                icon: "chart.bar.fill",
+                                color: Color.purple
+                            ) {
+                                // İstatistikler action
+                            }
+                        }
+                        .padding(.horizontal, 25)
+                    }
+                    .padding(.top, 10)
+                    
+                    // Main Features Grid
+                    LazyVGrid(
+                        columns: [
                     GridItem(.flexible()),
                     GridItem(.flexible())
-                ], spacing: 20) {
+                        ],
+                        spacing: 20
+                    ) {
                     // Fotoğraf Çek
                     NavigationLink(destination: CameraView()) {
-                        DashboardCard(
+                            FeatureCard(
                             title: "Fotoğraf Çek",
-                            systemImage: "camera.fill",
-                            color: AppColors.accentColor,
-                            backgroundColor: .white
+                                subtitle: "Yeni hasta fotoğrafı",
+                                icon: "camera.fill",
+                                color: AppColors.accentColor
                         )
                     }
                     
                     // Fotoğraf Yükle
                     NavigationLink(destination: PhotoGalleryView()) {
-                        DashboardCard(
+                            FeatureCard(
                             title: "Fotoğraf Yükle",
-                            systemImage: "photo.fill",
-                            color: AppColors.secondaryColor,
-                            backgroundColor: .white
+                                subtitle: "Galeriden seç",
+                                icon: "photo.fill",
+                                color: AppColors.secondaryColor
                         )
                     }
                     
                     // Randevular
                     NavigationLink(destination: AppointmentsView()) {
-                        DashboardCard(
+                            FeatureCard(
                             title: "Randevular",
-                            systemImage: "calendar",
-                            color: AppColors.accentColor,
-                            backgroundColor: .white
+                                subtitle: "Randevu listesi",
+                                icon: "calendar",
+                                color: Color.purple
                         )
                     }
                     
                     // Hasta Geçmişi
                     NavigationLink(destination: PatientHistoryView()) {
-                        DashboardCard(
+                            FeatureCard(
                             title: "Hasta Geçmişi",
-                            systemImage: "list.clipboard",
-                            color: AppColors.secondaryColor,
-                            backgroundColor: .white
+                                subtitle: "Geçmiş kayıtlar",
+                                icon: "list.clipboard",
+                                color: Color.green
                         )
                     }
                 }
                 .padding(.horizontal, 25)
-                
-                Spacer()
+                    .padding(.top, 10)
+                }
             }
         }
         .alert(isPresented: $showAlert) {
@@ -986,6 +1039,9 @@ struct DoctorDashboardView: View {
         }
         .onAppear {
             loadDoctorProfile()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                showGreeting = true
+            }
         }
     }
     
@@ -1005,41 +1061,74 @@ struct DoctorDashboardView: View {
     }
 }
 
-struct DashboardCard: View {
+// Quick Action Button
+struct QuickActionButton: View {
     let title: String
-    let systemImage: String
+    let icon: String
     let color: Color
-    let backgroundColor: Color
+    let action: () -> Void
     
     var body: some View {
-        VStack(spacing: 15) {
-            // Icon container
+        Button(action: action) {
+            VStack(spacing: 12) {
             ZStack {
                 Circle()
                     .fill(color.opacity(0.1))
-                    .frame(width: 60, height: 60)
+                        .frame(width: 56, height: 56)
                 
-                Image(systemName: systemImage)
+                    Image(systemName: icon)
                     .font(.system(size: 24))
                     .foregroundColor(color)
             }
             
             Text(title)
-                .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 14, weight: .medium))
                 .foregroundColor(AppColors.textColor)
-                .multilineTextAlignment(.center)
+            }
+            .frame(width: 100)
+            .padding(.vertical, 16)
+            .background(Color.white)
+            .cornerRadius(20)
+            .shadow(color: AppColors.shadowColor, radius: 8)
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: 160)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(backgroundColor)
-                .shadow(color: AppColors.shadowColor, radius: 10)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(color.opacity(0.1), lineWidth: 1)
-                )
-        )
+    }
+}
+
+// Feature Card
+struct FeatureCard: View {
+    let title: String
+    let subtitle: String
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Icon
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.1))
+                    .frame(width: 56, height: 56)
+                
+                Image(systemName: icon)
+                    .font(.system(size: 24))
+                    .foregroundColor(color)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(AppColors.textColor)
+                
+                Text(subtitle)
+                    .font(.system(size: 14))
+                    .foregroundColor(Color.gray)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20)
+        .background(Color.white)
+        .cornerRadius(24)
+        .shadow(color: AppColors.shadowColor, radius: 8)
     }
 }
 
@@ -1080,16 +1169,291 @@ struct PhotoGalleryView: View {
     }
 }
 
+struct Appointment: Identifiable {
+    let id: String
+    let userName: String
+    let userEmail: String
+    let userPhone: String
+    let date: String
+    let time: String
+    let notes: String
+    let status: String
+    let complaint: String
+    let photos: [String]
+}
+
 struct AppointmentsView: View {
-    @Environment(\.presentationMode) var presentationMode
+    @State private var appointments: [Appointment] = []
+    @State private var isLoading = true
+    @State private var errorMessage: String?
     
     var body: some View {
         ZStack {
-            Color(red: 0.35, green: 0.6, blue: 1.0).ignoresSafeArea()
-            Text("Randevular - Çok Yakında")
-                .foregroundColor(.white)
+            // Background
+            LinearGradient(
+                gradient: Gradient(colors: [AppColors.gradient1, AppColors.gradient2]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            if isLoading {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle())
+                    .scaleEffect(1.5)
+            } else if let error = errorMessage {
+                VStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 50))
+                        .foregroundColor(.red)
+                    Text(error)
+                        .font(.system(size: 16, weight: .medium))
+                        .multilineTextAlignment(.center)
+                        .padding()
+                }
+            } else if appointments.isEmpty {
+                VStack {
+                    Image(systemName: "calendar.badge.exclamationmark")
+                        .font(.system(size: 50))
+                        .foregroundColor(AppColors.accentColor)
+                    Text("Henüz randevu bulunmuyor")
+                        .font(.system(size: 16, weight: .medium))
+                        .padding()
+                }
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 15) {
+                        ForEach(appointments) { appointment in
+                            AppointmentCard(appointment: appointment)
+                        }
+                    }
+                    .padding()
+                }
+            }
         }
-        .navigationBarBackButtonHidden(false)
+        .navigationTitle("Randevular")
+        .onAppear {
+            loadAppointments()
+        }
+    }
+    
+    private func loadAppointments() {
+        isLoading = true
+        errorMessage = nil
+        
+        let ref = Database.database().reference().child("appointments")
+        ref.observe(.value) { snapshot in
+            isLoading = false
+            
+            guard snapshot.exists() else {
+                appointments = []
+                return
+            }
+            
+            do {
+                var loadedAppointments: [Appointment] = []
+                
+                for child in snapshot.children {
+                    guard let snapshot = child as? DataSnapshot,
+                          let value = snapshot.value as? [String: Any] else { continue }
+                    
+                    let appointment = Appointment(
+                        id: snapshot.key,
+                        userName: value["userName"] as? String ?? "",
+                        userEmail: value["userEmail"] as? String ?? "",
+                        userPhone: value["userPhone"] as? String ?? "",
+                        date: value["appointmentDate"] as? String ?? "",
+                        time: value["appointmentTime"] as? String ?? "",
+                        notes: value["description"] as? String ?? "",
+                        status: value["status"] as? String ?? "Beklemede",
+                        complaint: value["description"] as? String ?? "",
+                        photos: [value["photoUrl"] as? String ?? ""].filter { !$0.isEmpty }
+                    )
+                    loadedAppointments.append(appointment)
+                    print("Loaded appointment: \(appointment)")
+                }
+                
+                appointments = loadedAppointments.sorted { $0.date < $1.date }
+                print("Total loaded appointments: \(appointments.count)")
+            } catch {
+                errorMessage = "Randevular yüklenirken bir hata oluştu: \(error.localizedDescription)"
+                print("Error loading appointments: \(error)")
+            }
+        }
+    }
+}
+
+struct AppointmentCard: View {
+    let appointment: Appointment
+    @State private var showPhotos = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Header with name and status
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(appointment.userName)
+                        .font(.system(size: 18, weight: .bold))
+                    Text(appointment.userPhone)
+                        .font(.system(size: 14))
+                        .foregroundColor(.gray)
+                }
+                Spacer()
+                StatusBadge(status: appointment.status)
+            }
+            
+            Divider()
+            
+            // Date and Time with labels
+            HStack(spacing: 20) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Tarih:")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.gray)
+                    HStack {
+                        Image(systemName: "calendar")
+                            .foregroundColor(AppColors.accentColor)
+                        Text(appointment.date)
+                    }
+                    .font(.system(size: 14))
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Saat:")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.gray)
+                    HStack {
+                        Image(systemName: "clock")
+                            .foregroundColor(AppColors.accentColor)
+                        Text(appointment.time)
+                    }
+                    .font(.system(size: 14))
+                }
+            }
+            
+            // Email
+            if !appointment.userEmail.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("E-posta:")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.gray)
+                    HStack {
+                        Image(systemName: "envelope")
+                            .foregroundColor(AppColors.accentColor)
+                        Text(appointment.userEmail)
+                    }
+                    .font(.system(size: 14))
+                }
+                .padding(.top, 4)
+            }
+            
+            // Complaint
+            if !appointment.complaint.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Şikayet:")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.gray)
+                    Text(appointment.complaint)
+                        .font(.system(size: 14))
+                        .foregroundColor(.black)
+                        .padding(.leading, 4)
+                }
+                .padding(.top, 4)
+            }
+            
+            // Notes
+            if !appointment.notes.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Not:")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.gray)
+                    Text(appointment.notes)
+                        .font(.system(size: 14))
+                        .foregroundColor(.black)
+                        .padding(.leading, 4)
+                }
+                .padding(.top, 4)
+            }
+            
+            // Photos
+            if !appointment.photos.isEmpty {
+                Button(action: { showPhotos = true }) {
+                    HStack {
+                        Image(systemName: "photo.fill")
+                            .foregroundColor(AppColors.accentColor)
+                        Text("\(appointment.photos.count) Fotoğraf")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(AppColors.accentColor)
+                    }
+                    .padding(.top, 8)
+                }
+            }
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(15)
+        .shadow(color: Color.black.opacity(0.1), radius: 5)
+        .sheet(isPresented: $showPhotos) {
+            PhotoGallerySheet(photos: appointment.photos)
+        }
+    }
+}
+
+struct PhotoGallerySheet: View {
+    let photos: [String]
+    @Environment(\.presentationMode) var presentationMode
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                LazyVGrid(columns: [
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ], spacing: 10) {
+                    ForEach(photos, id: \.self) { photoUrl in
+                        AsyncImage(url: URL(string: photoUrl)) { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        } placeholder: {
+                            ProgressView()
+                        }
+                        .frame(height: 200)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+                }
+                .padding()
+            }
+            .navigationTitle("Fotoğraflar")
+            .navigationBarItems(trailing: Button("Kapat") {
+                presentationMode.wrappedValue.dismiss()
+            })
+        }
+    }
+}
+
+struct StatusBadge: View {
+    let status: String
+    
+    var statusColor: Color {
+        switch status.lowercased() {
+        case "onaylandı":
+            return .green
+        case "reddedildi":
+            return .red
+        default:
+            return .orange
+        }
+    }
+    
+    var body: some View {
+        Text(status)
+            .font(.system(size: 12, weight: .medium))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(statusColor.opacity(0.2))
+            .foregroundColor(statusColor)
+            .cornerRadius(10)
     }
 }
 
