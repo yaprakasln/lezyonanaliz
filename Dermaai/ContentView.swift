@@ -826,10 +826,12 @@ struct DoctorDashboardView: View {
     @State private var doctorSpecialty = ""
     @State private var doctorPhone = ""
     @State private var doctorEmail = ""
-    @State private var isLoading = false
+    @State private var isLoading = true
     @State private var showAccountSettings = false
     @State private var selectedTab = 0
     @State private var showGreeting = false
+    @State private var appointments: [Appointment] = []
+    @State private var errorMessage: String?
     
     var body: some View {
         ZStack {
@@ -882,8 +884,8 @@ struct DoctorDashboardView: View {
             
             ScrollView {
                 VStack(spacing: 25) {
-                    // Modern Header with Profile
-                HStack {
+                    // Modern Header with Profile and Animation
+                    HStack {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Hoş Geldiniz,")
                                 .font(.system(size: 16, weight: .medium))
@@ -891,134 +893,155 @@ struct DoctorDashboardView: View {
                                 .opacity(showGreeting ? 1 : 0)
                                 .animation(.easeIn(duration: 0.5).delay(0.3), value: showGreeting)
                             
-                            Text(doctorTitle.isEmpty ? "Dr. \(doctorName)" : "\(doctorTitle) \(doctorName)")
+                            Text("\(doctorTitle) \(doctorName)")
                                 .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(AppColors.accentColor)
+                                .foregroundColor(AppColors.accentColor)
                                 .opacity(showGreeting ? 1 : 0)
                                 .animation(.easeIn(duration: 0.5).delay(0.5), value: showGreeting)
-                    }
-                        
-                    Spacer()
-                        
-                        HStack(spacing: 16) {
-                        Button(action: { showAccountSettings = true }) {
-                                ZStack {
-                                    Circle()
-                                        .fill(Color.white)
-                                        .frame(width: 44, height: 44)
-                                        .shadow(color: AppColors.shadowColor, radius: 8)
-                                    
-                            Image(systemName: "person.circle.fill")
-                                        .font(.system(size: 22))
-                                .foregroundColor(AppColors.accentColor)
-                                }
                         }
                         
-                        Button(action: {
-                            do {
-                                try Auth.auth().signOut()
-                                currentView = "login"
-                            } catch {
-                                alertMessage = error.localizedDescription
-                                showAlert = true
-                            }
-                        }) {
+                        Spacer()
+                        
+                        HStack(spacing: 16) {
+                            Button(action: { showAccountSettings = true }) {
                                 ZStack {
                                     Circle()
                                         .fill(Color.white)
                                         .frame(width: 44, height: 44)
                                         .shadow(color: AppColors.shadowColor, radius: 8)
                                     
-                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                                    Image(systemName: "person.circle.fill")
+                                        .font(.system(size: 22))
+                                        .foregroundColor(AppColors.accentColor)
+                                }
+                            }
+                            
+                            Button(action: {
+                                do {
+                                    try Auth.auth().signOut()
+                                    currentView = "login"
+                                } catch {
+                                    alertMessage = error.localizedDescription
+                                    showAlert = true
+                                }
+                            }) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.white)
+                                        .frame(width: 44, height: 44)
+                                        .shadow(color: AppColors.shadowColor, radius: 8)
+                                    
+                                    Image(systemName: "rectangle.portrait.and.arrow.right")
                                         .font(.system(size: 20))
                                         .foregroundColor(AppColors.secondaryColor)
                                 }
+                            }
                         }
                     }
-                }
-                .padding(.horizontal, 25)
-                .padding(.top, 60)
-                
-                    // Quick Actions
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 16) {
-                            QuickActionButton(
-                                title: "Yeni Randevu",
-                                icon: "calendar.badge.plus",
-                                color: AppColors.accentColor
-                            ) {
-                                // Yeni randevu action
+                    .padding(.horizontal, 25)
+                    .padding(.top, 60)
+
+                    // Animated Welcome Banner
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 25)
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        AppColors.accentColor.opacity(0.8),
+                                        AppColors.accentColor
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .shadow(color: AppColors.shadowColor, radius: 10)
+                        
+                        HStack {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("DermaAI")
+                                    .font(.system(size: 22, weight: .bold))
+                                    .foregroundColor(.white)
+                                Text("Yapay Zeka Destekli\nDermatoloji Asistanı")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.white.opacity(0.9))
+                                    .multilineTextAlignment(.leading)
                             }
                             
-                            QuickActionButton(
-                                title: "Hasta Ara",
-                                icon: "magnifyingglass",
-                                color: AppColors.secondaryColor
-                            ) {
-                                // Hasta arama action
-                            }
+                            Spacer()
                             
-                            QuickActionButton(
-                                title: "İstatistikler",
-                                icon: "chart.bar.fill",
-                                color: Color.purple
-                            ) {
-                                // İstatistikler action
+                            ZStack {
+                                ForEach(0..<3) { index in
+                                    Circle()
+                                        .stroke(Color.white.opacity(0.5), lineWidth: 2)
+                                        .frame(width: 50 + CGFloat(index * 20), height: 50 + CGFloat(index * 20))
+                                        .scaleEffect(showGreeting ? 1 : 0.5)
+                                        .opacity(showGreeting ? 0.2 : 0.8)
+                                        .animation(
+                                            Animation.easeInOut(duration: 1.5)
+                                                .repeatForever(autoreverses: true)
+                                                .delay(Double(index) * 0.2),
+                                            value: showGreeting
+                                        )
+                                }
+                                
+                                Image(systemName: "waveform.path.ecg")
+                                    .font(.system(size: 30))
+                                    .foregroundColor(.white)
+                                    .rotationEffect(.degrees(showGreeting ? 360 : 0))
+                                    .animation(
+                                        Animation.linear(duration: 5)
+                                            .repeatForever(autoreverses: false),
+                                        value: showGreeting
+                                    )
                             }
+                            .frame(width: 100)
                         }
                         .padding(.horizontal, 25)
+                        .padding(.vertical, 20)
                     }
-                    .padding(.top, 10)
-                    
+                    .frame(height: 100)
+                    .padding(.horizontal, 25)
+                    .padding(.top, 20)
+
                     // Main Features Grid
                     LazyVGrid(
                         columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
+                            GridItem(.flexible()),
+                            GridItem(.flexible())
                         ],
                         spacing: 20
                     ) {
-                    // Fotoğraf Çek
-                    NavigationLink(destination: CameraView()) {
+                        // Randevular
+                        NavigationLink(destination: AppointmentsView()) {
                             FeatureCard(
-                            title: "Fotoğraf Çek",
-                                subtitle: "Yeni hasta fotoğrafı",
-                                icon: "camera.fill",
-                                color: AppColors.accentColor
-                        )
-                    }
-                    
-                    // Fotoğraf Yükle
-                    NavigationLink(destination: PhotoGalleryView()) {
-                            FeatureCard(
-                            title: "Fotoğraf Yükle",
-                                subtitle: "Galeriden seç",
-                                icon: "photo.fill",
-                                color: AppColors.secondaryColor
-                        )
-                    }
-                    
-                    // Randevular
-                    NavigationLink(destination: AppointmentsView()) {
-                            FeatureCard(
-                            title: "Randevular",
+                                title: "Randevular",
                                 subtitle: "Randevu listesi",
                                 icon: "calendar",
                                 color: Color.purple
-                        )
-                    }
-                    
-                    // Hasta Geçmişi
-                    NavigationLink(destination: PatientHistoryView()) {
+                            )
+                        }
+                        
+                        // Hasta Analizi
+                        NavigationLink(destination: PatientAnalysisView()) {
                             FeatureCard(
-                            title: "Hasta Geçmişi",
-                                subtitle: "Geçmiş kayıtlar",
-                                icon: "list.clipboard",
-                                color: Color.green
-                        )
+                                title: "Hasta Analizi",
+                                subtitle: "Yapay Zeka Analizi",
+                                icon: "waveform.path.ecg",
+                                color: AppColors.accentColor
+                            )
+                        }
+                        
+                        // Hasta Arama
+                        NavigationLink(destination: PatientSearchView()) {
+                            FeatureCard(
+                                title: "Hasta Arama",
+                                subtitle: "Hasta Kayıtları",
+                                icon: "magnifyingglass",
+                                color: Color.blue
+                            )
+                        }
                     }
-                }
-                .padding(.horizontal, 25)
+                    .padding(.horizontal, 25)
                     .padding(.top, 10)
                 }
             }
@@ -1066,31 +1089,30 @@ struct QuickActionButton: View {
     let title: String
     let icon: String
     let color: Color
-    let action: () -> Void
     
     var body: some View {
-        Button(action: action) {
-            VStack(spacing: 12) {
+        VStack(spacing: 12) {
             ZStack {
                 Circle()
                     .fill(color.opacity(0.1))
-                        .frame(width: 56, height: 56)
+                    .frame(width: 56, height: 56)
                 
-                    Image(systemName: icon)
+                Image(systemName: icon)
                     .font(.system(size: 24))
                     .foregroundColor(color)
             }
             
             Text(title)
-                    .font(.system(size: 14, weight: .medium))
+                .font(.system(size: 14, weight: .medium))
                 .foregroundColor(AppColors.textColor)
-            }
-            .frame(width: 100)
-            .padding(.vertical, 16)
-            .background(Color.white)
-            .cornerRadius(20)
-            .shadow(color: AppColors.shadowColor, radius: 8)
         }
+        .frame(width: 100)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.white)
+                .shadow(color: AppColors.shadowColor, radius: 8)
+        )
     }
 }
 
@@ -1180,6 +1202,7 @@ struct Appointment: Identifiable {
     let status: String
     let complaint: String
     let photos: [String]
+    let timestamp: Int64?
 }
 
 struct AppointmentsView: View {
@@ -1242,7 +1265,7 @@ struct AppointmentsView: View {
         errorMessage = nil
         
         let ref = Database.database().reference().child("appointments")
-        ref.observe(.value) { snapshot in
+        ref.queryOrdered(byChild: "timestamp").observe(.value) { snapshot in
             isLoading = false
             
             guard snapshot.exists() else {
@@ -1253,9 +1276,9 @@ struct AppointmentsView: View {
             do {
                 var loadedAppointments: [Appointment] = []
                 
-                for child in snapshot.children {
-                    guard let snapshot = child as? DataSnapshot,
-                          let value = snapshot.value as? [String: Any] else { continue }
+                let appointmentSnapshots = snapshot.children.allObjects as! [DataSnapshot]
+                for snapshot in appointmentSnapshots {
+                    guard let value = snapshot.value as? [String: Any] else { continue }
                     
                     let appointment = Appointment(
                         id: snapshot.key,
@@ -1264,17 +1287,17 @@ struct AppointmentsView: View {
                         userPhone: value["userPhone"] as? String ?? "",
                         date: value["appointmentDate"] as? String ?? "",
                         time: value["appointmentTime"] as? String ?? "",
-                        notes: value["description"] as? String ?? "",
+                        notes: value["notes"] as? String ?? "",
                         status: value["status"] as? String ?? "Beklemede",
                         complaint: value["description"] as? String ?? "",
-                        photos: [value["photoUrl"] as? String ?? ""].filter { !$0.isEmpty }
+                        photos: [value["photoUrl"] as? String ?? ""].filter { !$0.isEmpty },
+                        timestamp: value["timestamp"] as? Int64 ?? 0
                     )
                     loadedAppointments.append(appointment)
-                    print("Loaded appointment: \(appointment)")
                 }
                 
-                appointments = loadedAppointments.sorted { $0.date < $1.date }
-                print("Total loaded appointments: \(appointments.count)")
+                self.appointments = loadedAppointments
+                
             } catch {
                 errorMessage = "Randevular yüklenirken bir hata oluştu: \(error.localizedDescription)"
                 print("Error loading appointments: \(error)")
@@ -2097,6 +2120,421 @@ struct DoctorCard: View {
         .background(Color.white)
         .cornerRadius(15)
         .shadow(color: AppColors.shadowColor, radius: 5)
+    }
+}
+
+struct PatientAnalysisView: View {
+    @State private var selectedImage: UIImage?
+    @State private var isAnalyzing = false
+    @State private var analysisResult: String?
+    @State private var showImagePicker = false
+    @State private var showCamera = false
+    
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                gradient: Gradient(colors: [AppColors.gradient1, AppColors.gradient2]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            ScrollView {
+                VStack(spacing: 20) {
+                    if let image = selectedImage {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxHeight: 300)
+                            .cornerRadius(15)
+                            
+                        Button(action: analyzeImage) {
+                            HStack {
+                                Image(systemName: "waveform.path.ecg")
+                                Text("Analiz Et")
+                            }
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(AppColors.accentColor)
+                            .cornerRadius(10)
+                        }
+                        .padding()
+                    }
+                    
+                    HStack(spacing: 15) {
+                        Button(action: {
+                            showImagePicker = true
+                        }) {
+                            HStack {
+                                Image(systemName: "photo.fill")
+                                Text("Fotoğraf Seç")
+                            }
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(AppColors.accentColor)
+                            .cornerRadius(10)
+                        }
+                        
+                        Button(action: {
+                            showCamera = true
+                        }) {
+                            HStack {
+                                Image(systemName: "camera.fill")
+                                Text("Fotoğraf Çek")
+                            }
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(AppColors.accentColor)
+                            .cornerRadius(10)
+                        }
+                    }
+                    .padding()
+                    
+                    if isAnalyzing {
+                        ProgressView("Analiz ediliyor...")
+                    }
+                    
+                    if let result = analysisResult {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Analiz Sonucu:")
+                                .font(.headline)
+                            Text(result)
+                                .font(.body)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.white)
+                        .cornerRadius(10)
+                        .padding()
+                    }
+                }
+                .padding()
+            }
+        }
+        .navigationTitle("Hasta Analizi")
+        .sheet(isPresented: $showImagePicker) {
+            ImagePicker(selectedImage: $selectedImage, sourceType: .photoLibrary)
+        }
+        .sheet(isPresented: $showCamera) {
+            ImagePicker(selectedImage: $selectedImage, sourceType: .camera)
+        }
+    }
+    
+    func analyzeImage() {
+        guard selectedImage != nil else { return }
+        isAnalyzing = true
+        analysisResult = nil
+        
+        // Burada yapay zeka analizi yapılacak
+        // Örnek olarak:
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            isAnalyzing = false
+            analysisResult = "Lezyon analizi tamamlandı. Sonuç: ..."
+        }
+    }
+}
+
+struct StatisticsView: View {
+    @State private var totalAppointments = 0
+    @State private var monthlyAppointments = 0
+    @State private var weeklyAppointments = 0
+    @State private var isLoading = true
+    
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                gradient: Gradient(colors: [AppColors.gradient1, AppColors.gradient2]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            if isLoading {
+                ProgressView()
+            } else {
+                ScrollView {
+                    VStack(spacing: 20) {
+                        StatCard(
+                            title: "Toplam Randevu",
+                            value: "\(totalAppointments)",
+                            icon: "calendar",
+                            color: .blue
+                        )
+                        
+                        StatCard(
+                            title: "Aylık Randevu",
+                            value: "\(monthlyAppointments)",
+                            icon: "chart.bar.fill",
+                            color: .green
+                        )
+                        
+                        StatCard(
+                            title: "Haftalık Randevu",
+                            value: "\(weeklyAppointments)",
+                            icon: "clock.fill",
+                            color: .purple
+                        )
+                    }
+                    .padding()
+                }
+            }
+        }
+        .navigationTitle("İstatistikler")
+        .onAppear(perform: loadStatistics)
+    }
+    
+    func loadStatistics() {
+        // İstatistikleri Firebase'den yükle
+    }
+}
+
+struct StatCard: View {
+    let title: String
+    let value: String
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(title)
+                    .font(.headline)
+                    .foregroundColor(.gray)
+                Text(value)
+                    .font(.system(size: 34, weight: .bold))
+                    .foregroundColor(color)
+            }
+            
+            Spacer()
+            
+            Image(systemName: icon)
+                .font(.system(size: 40))
+                .foregroundColor(color)
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(15)
+        .shadow(color: Color.black.opacity(0.1), radius: 5)
+    }
+}
+
+struct PatientSearchView: View {
+    @State private var searchText = ""
+    @State private var patients: [Patient] = []
+    @State private var isLoading = false
+    @State private var showError = false
+    @State private var errorMessage = ""
+    
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                gradient: Gradient(colors: [AppColors.gradient1, AppColors.gradient2]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            VStack(spacing: 20) {
+                // Arama çubuğu
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(AppColors.accentColor)
+                    
+                    TextField("Hasta Adı veya Telefon", text: $searchText)
+                        .textFieldStyle(PlainTextFieldStyle())
+                        .padding(10)
+                        .background(Color.white)
+                        .cornerRadius(10)
+                        .shadow(color: AppColors.shadowColor, radius: 2)
+                    
+                    Button(action: searchPatients) {
+                        Text("Ara")
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(AppColors.accentColor)
+                            .cornerRadius(10)
+                    }
+                }
+                .padding()
+                .background(Color.white)
+                .cornerRadius(15)
+                .shadow(color: AppColors.shadowColor, radius: 5)
+                .padding(.horizontal)
+                
+                if isLoading {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                } else if patients.isEmpty {
+                    VStack(spacing: 10) {
+                        Image(systemName: "person.crop.circle.badge.questionmark")
+                            .font(.system(size: 50))
+                            .foregroundColor(AppColors.accentColor)
+                        Text("Hasta bulunamadı")
+                            .font(.headline)
+                            .foregroundColor(AppColors.textColor)
+                    }
+                    .padding()
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 15) {
+                            ForEach(patients) { patient in
+                                PatientCard(patient: patient)
+                            }
+                        }
+                        .padding()
+                    }
+                }
+            }
+        }
+        .navigationTitle("Hasta Arama")
+        .alert(isPresented: $showError) {
+            Alert(title: Text("Hata"), message: Text(errorMessage), dismissButton: .default(Text("Tamam")))
+        }
+    }
+    
+    func searchPatients() {
+        guard !searchText.isEmpty else { return }
+        
+        isLoading = true
+        patients.removeAll()
+        
+        let ref = Database.database().reference().child("appointments")
+        ref.queryOrdered(byChild: "userName")
+            .queryStarting(atValue: searchText)
+            .queryEnding(atValue: searchText + "\u{f8ff}")
+            .observeSingleEvent(of: .value) { snapshot in
+                isLoading = false
+                
+                guard snapshot.exists() else {
+                    return
+                }
+                
+                do {
+                    let appointmentSnapshots = snapshot.children.allObjects as! [DataSnapshot]
+                    for snapshot in appointmentSnapshots {
+                        guard let value = snapshot.value as? [String: Any] else { continue }
+                        
+                        let patient = Patient(
+                            id: snapshot.key,
+                            name: value["userName"] as? String ?? "",
+                            phone: value["userPhone"] as? String ?? "",
+                            email: value["userEmail"] as? String ?? "",
+                            lastAppointment: "\(value["appointmentDate"] as? String ?? "") \(value["appointmentTime"] as? String ?? "")"
+                        )
+                        
+                        if !patients.contains(where: { $0.id == patient.id }) {
+                            patients.append(patient)
+                        }
+                    }
+                } catch {
+                    errorMessage = "Hasta arama sırasında bir hata oluştu"
+                    showError = true
+                }
+            }
+    }
+}
+
+struct PatientCard: View {
+    let patient: Patient
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(patient.name)
+                        .font(.headline)
+                        .foregroundColor(AppColors.textColor)
+                    
+                    Text(patient.phone)
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("Son Randevu")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                    Text(patient.lastAppointment)
+                        .font(.subheadline)
+                        .foregroundColor(AppColors.accentColor)
+                }
+            }
+            
+            if !patient.email.isEmpty {
+                HStack {
+                    Image(systemName: "envelope.fill")
+                        .foregroundColor(.gray)
+                    Text(patient.email)
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                }
+            }
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(15)
+        .shadow(color: AppColors.shadowColor, radius: 5)
+    }
+}
+
+struct ImagePicker: UIViewControllerRepresentable {
+    @Environment(\.presentationMode) var presentationMode
+    @Binding var selectedImage: UIImage?
+    var sourceType: UIImagePickerController.SourceType
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.delegate = context.coordinator
+        picker.sourceType = sourceType
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePicker
+
+        init(_ parent: ImagePicker) {
+            self.parent = parent
+        }
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.selectedImage = image
+            }
+            parent.presentationMode.wrappedValue.dismiss()
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.presentationMode.wrappedValue.dismiss()
+        }
+    }
+}
+
+// Patient modelini en üste ekleyelim (import'ların altına)
+struct Patient: Identifiable, Hashable {
+    let id: String
+    let name: String
+    let phone: String
+    let email: String
+    let lastAppointment: String
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (lhs: Patient, rhs: Patient) -> Bool {
+        lhs.id == rhs.id
     }
 }
 
