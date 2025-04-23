@@ -8,6 +8,7 @@
 import SwiftUI
 import FirebaseAuth
 import FirebaseDatabase
+import FirebaseStorage
 
 struct ContentView: View {
     @State private var currentView = "login" // login, register, dashboard
@@ -1425,32 +1426,57 @@ struct AppointmentCard: View {
 struct PhotoGallerySheet: View {
     let photos: [String]
     @Environment(\.presentationMode) var presentationMode
+    @State private var loadedImages: [UIImage] = []
     
     var body: some View {
         NavigationView {
             ScrollView {
-                LazyVGrid(columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
-                ], spacing: 10) {
-                    ForEach(photos, id: \.self) { photoUrl in
-                        AsyncImage(url: URL(string: photoUrl)) { image in
-                            image
+                if loadedImages.isEmpty {
+                    VStack(spacing: 10) {
+                        ProgressView()
+                        Text("Fotoğraflar yükleniyor...")
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding()
+                } else {
+                    LazyVGrid(columns: [
+                        GridItem(.flexible()),
+                        GridItem(.flexible())
+                    ], spacing: 10) {
+                        ForEach(loadedImages.indices, id: \.self) { index in
+                            Image(uiImage: loadedImages[index])
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
-                        } placeholder: {
-                            ProgressView()
+                                .frame(height: 200)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
                         }
-                        .frame(height: 200)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
+                    .padding()
                 }
-                .padding()
             }
             .navigationTitle("Fotoğraflar")
             .navigationBarItems(trailing: Button("Kapat") {
                 presentationMode.wrappedValue.dismiss()
             })
+        }
+        .onAppear {
+            loadBase64Images()
+        }
+    }
+    
+    private func loadBase64Images() {
+        for photoString in photos {
+            if !photoString.isEmpty {
+                // Base64 prefix'ini kaldır
+                let base64String = photoString.replacingOccurrences(of: "data:image/jpeg;base64,", with: "")
+                
+                // Base64'ü decode et
+                if let imageData = Data(base64Encoded: base64String),
+                   let image = UIImage(data: imageData) {
+                    loadedImages.append(image)
+                }
+            }
         }
     }
 }
@@ -2487,37 +2513,57 @@ struct ImagePicker: UIViewControllerRepresentable {
     @Environment(\.presentationMode) var presentationMode
     @Binding var selectedImage: UIImage?
     var sourceType: UIImagePickerController.SourceType
-
+    var appointmentId: String?
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePicker
+        
+        init(_ parent: ImagePicker) {
+            self.parent = parent
+        }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+            if let image = info[.originalImage] as? UIImage,
+               let imageData = image.jpegData(compressionQuality: 0.5),
+               let appointmentId = parent.appointmentId {
+                
+                parent.selectedImage = image
+                
+                // Base64 formatına çevir
+                let base64String = imageData.base64EncodedString()
+                let photoUrl = "data:image/jpeg;base64," + base64String
+                
+                // Firebase Realtime Database'e kaydet
+                let ref = Database.database().reference().child("appointments").child(appointmentId)
+                ref.child("photos").observeSingleEvent(of: .value) { snapshot in
+                    var photos: [String] = []
+                    if let existingPhotos = snapshot.value as? [String] {
+                        photos = existingPhotos
+                    }
+                    photos.append(photoUrl)
+                    ref.child("photos").setValue(photos)
+                }
+            }
+            
+            parent.presentationMode.wrappedValue.dismiss()
+        }
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.presentationMode.wrappedValue.dismiss()
+        }
+    }
+    
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
         picker.delegate = context.coordinator
         picker.sourceType = sourceType
         return picker
     }
-
+    
     func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
-
+    
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
-    }
-
-    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-        let parent: ImagePicker
-
-        init(_ parent: ImagePicker) {
-            self.parent = parent
-        }
-
-        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
-            if let image = info[.originalImage] as? UIImage {
-                parent.selectedImage = image
-            }
-            parent.presentationMode.wrappedValue.dismiss()
-        }
-
-        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-            parent.presentationMode.wrappedValue.dismiss()
-        }
     }
 }
 
