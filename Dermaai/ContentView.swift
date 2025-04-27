@@ -1746,10 +1746,10 @@ struct AccountSettingsView: View {
     @State private var newPassword = ""
     @State private var confirmPassword = ""
     @State private var showPasswordFields = false
+    @State private var isUpdating = false
     
     var body: some View {
         ZStack {
-            // Modern gradient background
             LinearGradient(
                 gradient: Gradient(colors: [AppColors.gradient1, AppColors.gradient2]),
                 startPoint: .topLeading,
@@ -2039,17 +2039,19 @@ struct AccountSettingsView: View {
                             .padding(.horizontal, 20)
                         }
                     }
-                    .padding(.top, 30)
                     
-                    // Update Button
-                    Button(action: updateAccount) {
+                    // Bilgileri Güncelle butonu
+                    Button(action: {
+                        isUpdating = true
+                        updateAccount()
+                    }) {
                         HStack {
-                            if isLoading {
+                            if isUpdating {
                                 ProgressView()
                                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                     .scaleEffect(0.8)
                             } else {
-                                Text("Değişiklikleri Kaydet")
+                                Text("Bilgileri Güncelle")
                                     .font(.system(size: 16, weight: .semibold))
                                 Image(systemName: "checkmark.circle.fill")
                                     .font(.system(size: 18))
@@ -2070,64 +2072,35 @@ struct AccountSettingsView: View {
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 30)
-                    .disabled(isLoading)
+                    .disabled(isUpdating)
                 }
+                .padding(.bottom, 30)
             }
         }
-        .alert(isPresented: $showError) {
-            Alert(title: Text("Hata"), message: Text(errorMessage), dismissButton: .default(Text("Tamam")))
+        .alert("Hata", isPresented: $showError) {
+            Button("Tamam", role: .cancel) {
+                showError = false
+            }
+        } message: {
+            Text(errorMessage)
         }
-        .alert(isPresented: $showSuccess) {
-            Alert(
-                title: Text("Başarılı"),
-                message: Text("Hesap bilgileriniz başarıyla güncellendi."),
-                dismissButton: .default(Text("Tamam")) {
-                    isPresented = false
-                }
-            )
+        .alert("Başarılı", isPresented: $showSuccess) {
+            Button("Tamam", role: .cancel) {
+                showSuccess = false
+                isPresented = false
+            }
+        } message: {
+            Text("Bilgileriniz başarıyla güncellendi.")
         }
     }
     
     private func updateAccount() {
-        guard let user = Auth.auth().currentUser else { return }
-        
-        isLoading = true
-        
-        // E-posta değişikliği varsa
-        if doctorEmail != user.email {
-            user.updateEmail(to: doctorEmail) { error in
-                if let error = error {
-                    errorMessage = error.localizedDescription
-                    showError = true
-                    isLoading = false
-                    return
-                }
-                updateProfileData()
-            }
-        } else {
-            updateProfileData()
+        guard let userId = Auth.auth().currentUser?.uid else {
+            errorMessage = "Kullanıcı oturumu bulunamadı"
+            showError = true
+            isUpdating = false
+            return
         }
-        
-        // Şifre değişikliği varsa
-        if !newPassword.isEmpty {
-            if newPassword == confirmPassword {
-                user.updatePassword(to: newPassword) { error in
-                    if let error = error {
-                        errorMessage = error.localizedDescription
-                        showError = true
-                        isLoading = false
-                    }
-                }
-            } else {
-                errorMessage = "Yeni şifreler eşleşmiyor"
-                showError = true
-                isLoading = false
-            }
-        }
-    }
-    
-    private func updateProfileData() {
-        guard let userId = Auth.auth().currentUser?.uid else { return }
         
         let ref = Database.database().reference().child("doctors").child(userId)
         let profileData: [String: Any] = [
@@ -2140,12 +2113,64 @@ struct AccountSettingsView: View {
         ]
         
         ref.updateChildValues(profileData) { error, _ in
-            isLoading = false
             if let error = error {
-                errorMessage = error.localizedDescription
+                isUpdating = false
+                errorMessage = "Güncelleme sırasında bir hata oluştu: \(error.localizedDescription)"
                 showError = true
             } else {
-                showSuccess = true
+                // E-posta değişikliği varsa
+                if let currentUser = Auth.auth().currentUser, currentUser.email != doctorEmail {
+                    currentUser.updateEmail(to: doctorEmail) { error in
+                        isUpdating = false
+                        if let error = error {
+                            errorMessage = "E-posta güncellenirken hata oluştu: \(error.localizedDescription)"
+                            showError = true
+                        } else {
+                            showSuccess = true
+                        }
+                    }
+                } else {
+                    isUpdating = false
+                    showSuccess = true
+                }
+            }
+        }
+        
+        // Şifre değişikliği varsa
+        if !currentPassword.isEmpty && !newPassword.isEmpty {
+            guard newPassword == confirmPassword else {
+                errorMessage = "Yeni şifreler eşleşmiyor"
+                showError = true
+                isUpdating = false
+                return
+            }
+            
+            guard let user = Auth.auth().currentUser else { return }
+            
+            // Önce mevcut şifreyi doğrula
+            let credential = EmailAuthProvider.credential(withEmail: user.email ?? "", password: currentPassword)
+            user.reauthenticate(with: credential) { _, error in
+                if let error = error {
+                    errorMessage = "Mevcut şifre yanlış: \(error.localizedDescription)"
+                    showError = true
+                    isUpdating = false
+                    return
+                }
+                
+                // Şifreyi güncelle
+                user.updatePassword(to: newPassword) { error in
+                    if let error = error {
+                        errorMessage = "Şifre güncellenirken hata oluştu: \(error.localizedDescription)"
+                        showError = true
+                    } else {
+                        // Şifre başarıyla güncellendi
+                        currentPassword = ""
+                        newPassword = ""
+                        confirmPassword = ""
+                        showSuccess = true
+                    }
+                    isUpdating = false
+                }
             }
         }
     }
