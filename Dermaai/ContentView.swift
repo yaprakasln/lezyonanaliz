@@ -1427,6 +1427,8 @@ struct PhotoGallerySheet: View {
     let photos: [String]
     @Environment(\.presentationMode) var presentationMode
     @State private var loadedImages: [UIImage] = []
+    @State private var selectedImage: UIImage?
+    @State private var isShowingFullScreen = false
     
     var body: some View {
         NavigationView {
@@ -1441,15 +1443,21 @@ struct PhotoGallerySheet: View {
                     .padding()
                 } else {
                     LazyVGrid(columns: [
-                        GridItem(.flexible()),
                         GridItem(.flexible())
-                    ], spacing: 10) {
+                    ], spacing: 20) {
                         ForEach(loadedImages.indices, id: \.self) { index in
-                            Image(uiImage: loadedImages[index])
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(height: 200)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                            Button(action: {
+                                selectedImage = loadedImages[index]
+                                isShowingFullScreen = true
+                            }) {
+                                Image(uiImage: loadedImages[index])
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 600)
+                                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                                    .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
+                            }
                         }
                     }
                     .padding()
@@ -1460,6 +1468,33 @@ struct PhotoGallerySheet: View {
                 presentationMode.wrappedValue.dismiss()
             })
         }
+        .fullScreenCover(isPresented: $isShowingFullScreen, content: {
+            ZStack {
+                Color.black.edgesIgnoringSafeArea(.all)
+                
+                if let image = selectedImage {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .edgesIgnoringSafeArea(.all)
+                }
+                
+                VStack {
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            isShowingFullScreen = false
+                        }) {
+                            Image(systemName: "xmark")
+                                .foregroundColor(.white)
+                                .font(.system(size: 24, weight: .bold))
+                                .padding(25)
+                        }
+                    }
+                    Spacer()
+                }
+            }
+        })
         .onAppear {
             loadBase64Images()
         }
@@ -1468,10 +1503,7 @@ struct PhotoGallerySheet: View {
     private func loadBase64Images() {
         for photoString in photos {
             if !photoString.isEmpty {
-                // Base64 prefix'ini kaldır
                 let base64String = photoString.replacingOccurrences(of: "data:image/jpeg;base64,", with: "")
-                
-                // Base64'ü decode et
                 if let imageData = Data(base64Encoded: base64String),
                    let image = UIImage(data: imageData) {
                     loadedImages.append(image)
@@ -1685,8 +1717,10 @@ struct ResetPasswordView: View {
         }
         
         isLoading = true
+        
         Auth.auth().sendPasswordReset(withEmail: email) { error in
             isLoading = false
+            
             if let error = error {
                 errorMessage = error.localizedDescription
                 showError = true
