@@ -1,0 +1,3 @@
+import SwiftUI
+
+// ... Paste PatientHistoryView, CameraView, PhotoGalleryView, BackButton, StatisticsView, StatCard here ... 
