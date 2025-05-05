@@ -235,6 +235,12 @@ struct LoginView: View {
                             .background(Color.white)
                             .cornerRadius(15)
                             .shadow(color: AppColors.shadowColor, radius: 5)
+                            
+                            // Şifre bilgilendirme
+                            Text("Şifreniz en az 6 karakter olmalıdır.")
+                                .font(.system(size: 13))
+                                .foregroundColor(.gray)
+                                .padding(.leading, 15)
                         }
                         .padding(.horizontal, 20)
                         
@@ -415,8 +421,6 @@ struct RegisterView: View {
     @State private var email = ""
     @State private var sifre = ""
     @State private var sifreTekrar = ""
-    @State private var doctorTitle = ""
-    @State private var doctorSpecialty = ""
     @State private var doctorPhone = ""
     @State private var showError = false
     @State private var errorMessage = ""
@@ -546,66 +550,6 @@ struct RegisterView: View {
                         }
                         .padding(.horizontal, 20)
                         
-                        // Unvan
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Unvan")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(AppColors.textColor)
-                                .padding(.leading, 25)
-                            
-                            HStack(spacing: 15) {
-                                ZStack {
-                                    Circle()
-                                        .fill(AppColors.accentColor.opacity(0.1))
-                                        .frame(width: 40, height: 40)
-                                    
-                                    Image(systemName: "star.fill")
-                                        .foregroundColor(AppColors.accentColor)
-                                        .font(.system(size: 18))
-                                }
-                                .padding(.leading, 10)
-                                
-                                TextField("Unvan (Dr., Prof. Dr., vb.)", text: $doctorTitle)
-                                    .font(.system(size: 16))
-                                    .foregroundColor(AppColors.textColor)
-                            }
-                            .frame(height: 55)
-                            .background(Color.white)
-                            .cornerRadius(15)
-                            .shadow(color: AppColors.shadowColor, radius: 5)
-                        }
-                        .padding(.horizontal, 20)
-                        
-                        // Uzmanlık
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Uzmanlık")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(AppColors.textColor)
-                                .padding(.leading, 25)
-                            
-                            HStack(spacing: 15) {
-                                ZStack {
-                                    Circle()
-                                        .fill(AppColors.accentColor.opacity(0.1))
-                                        .frame(width: 40, height: 40)
-                                    
-                                    Image(systemName: "stethoscope")
-                                        .foregroundColor(AppColors.accentColor)
-                                        .font(.system(size: 18))
-                                }
-                                .padding(.leading, 10)
-                                
-                                TextField("Uzmanlık Alanı", text: $doctorSpecialty)
-                                    .font(.system(size: 16))
-                                    .foregroundColor(AppColors.textColor)
-                            }
-                            .frame(height: 55)
-                            .background(Color.white)
-                            .cornerRadius(15)
-                            .shadow(color: AppColors.shadowColor, radius: 5)
-                        }
-                        .padding(.horizontal, 20)
-                        
                         // Telefon
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Telefon")
@@ -696,6 +640,12 @@ struct RegisterView: View {
                             .background(Color.white)
                             .cornerRadius(15)
                             .shadow(color: AppColors.shadowColor, radius: 5)
+                            
+                            // Şifre bilgilendirme
+                            Text("Şifreniz en az 6 karakter olmalıdır.")
+                                .font(.system(size: 13))
+                                .foregroundColor(.gray)
+                                .padding(.leading, 15)
                         }
                         .padding(.horizontal, 20)
                         
@@ -788,6 +738,12 @@ struct RegisterView: View {
             isLoading = false
             return
         }
+        guard sifre.count >= 6 else {
+            errorMessage = "Lütfen en az 6 haneli bir şifre oluşturunuz."
+            showError = true
+            isLoading = false
+            return
+        }
         
         Auth.auth().createUser(withEmail: email, password: sifre) { authResult, error in
             if let error = error {
@@ -797,8 +753,6 @@ struct RegisterView: View {
             } else if let user = authResult?.user {
                 let userData: [String: Any] = [
                     "name": adSoyad,
-                    "title": doctorTitle,
-                    "specialty": doctorSpecialty,
                     "phone": doctorPhone,
                     "email": email,
                     "createdAt": ServerValue.timestamp()
@@ -894,7 +848,7 @@ struct DoctorDashboardView: View {
                                 .opacity(showGreeting ? 1 : 0)
                                 .animation(.easeIn(duration: 0.5).delay(0.3), value: showGreeting)
                             
-                            Text("\(doctorTitle) \(doctorName)")
+                            Text("Dr. \(doctorName)")
                                 .font(.system(size: 24, weight: .bold))
                                 .foregroundColor(AppColors.accentColor)
                                 .opacity(showGreeting ? 1 : 0)
@@ -1004,6 +958,30 @@ struct DoctorDashboardView: View {
                     .padding(.horizontal, 25)
                     .padding(.top, 20)
 
+                    // Hasta Arama Butonu
+                    NavigationLink(destination: PatientSearchView()) {
+                        HStack {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 20))
+                            Text("Hasta Ara")
+                                .font(.system(size: 16, weight: .medium))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [AppColors.accentColor, AppColors.accentColor.opacity(0.8)]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(15)
+                        .shadow(color: AppColors.accentColor.opacity(0.3), radius: 10)
+                    }
+                    .padding(.horizontal, 25)
+                    .padding(.top, 20)
+
                     // Main Features Grid
                     LazyVGrid(
                         columns: [
@@ -1029,16 +1007,6 @@ struct DoctorDashboardView: View {
                                 subtitle: "Yapay Zeka Analizi",
                                 icon: "waveform.path.ecg",
                                 color: AppColors.accentColor
-                            )
-                        }
-                        
-                        // Hasta Arama
-                        NavigationLink(destination: PatientSearchView()) {
-                            FeatureCard(
-                                title: "Hasta Arama",
-                                subtitle: "Hasta Kayıtları",
-                                icon: "magnifyingglass",
-                                color: Color.blue
                             )
                         }
                     }
@@ -1297,7 +1265,7 @@ struct AppointmentsView: View {
                     loadedAppointments.append(appointment)
                 }
                 
-                self.appointments = loadedAppointments
+                self.appointments = loadedAppointments.sorted { ($0.timestamp ?? 0) > ($1.timestamp ?? 0) }
                 
             } catch {
                 errorMessage = "Randevular yüklenirken bir hata oluştu: \(error.localizedDescription)"
@@ -1478,7 +1446,7 @@ struct PhotoGallerySheet: View {
                         .aspectRatio(contentMode: .fit)
                         .edgesIgnoringSafeArea(.all)
                 }
-                
+      
                 VStack {
                     HStack {
                         Spacer()
@@ -1835,66 +1803,6 @@ struct AccountSettingsView: View {
                                 TextField("E-posta adresiniz", text: $doctorEmail)
                                     .keyboardType(.emailAddress)
                                     .autocapitalization(.none)
-                                    .font(.system(size: 16))
-                                    .foregroundColor(AppColors.textColor)
-                            }
-                            .frame(height: 55)
-                            .background(Color.white)
-                            .cornerRadius(15)
-                            .shadow(color: AppColors.shadowColor, radius: 5)
-                        }
-                        .padding(.horizontal, 20)
-                        
-                        // Unvan
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Unvan")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(AppColors.textColor)
-                                .padding(.leading, 25)
-                            
-                            HStack(spacing: 15) {
-                                ZStack {
-                                    Circle()
-                                        .fill(AppColors.accentColor.opacity(0.1))
-                                        .frame(width: 40, height: 40)
-                                    
-                                    Image(systemName: "star.fill")
-                                        .foregroundColor(AppColors.accentColor)
-                                        .font(.system(size: 18))
-                                }
-                                .padding(.leading, 10)
-                                
-                                TextField("Unvan (Dr., Prof. Dr., vb.)", text: $doctorTitle)
-                                    .font(.system(size: 16))
-                                    .foregroundColor(AppColors.textColor)
-                            }
-                            .frame(height: 55)
-                            .background(Color.white)
-                            .cornerRadius(15)
-                            .shadow(color: AppColors.shadowColor, radius: 5)
-                        }
-                        .padding(.horizontal, 20)
-                        
-                        // Uzmanlık
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Uzmanlık")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(AppColors.textColor)
-                                .padding(.leading, 25)
-                            
-                            HStack(spacing: 15) {
-                                ZStack {
-                                    Circle()
-                                        .fill(AppColors.accentColor.opacity(0.1))
-                                        .frame(width: 40, height: 40)
-                                    
-                                    Image(systemName: "stethoscope")
-                                        .foregroundColor(AppColors.accentColor)
-                                        .font(.system(size: 18))
-                                }
-                                .padding(.leading, 10)
-                                
-                                TextField("Uzmanlık Alanı", text: $doctorSpecialty)
                                     .font(.system(size: 16))
                                     .foregroundColor(AppColors.textColor)
                             }
