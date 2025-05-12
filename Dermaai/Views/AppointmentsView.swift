@@ -1,5 +1,7 @@
 import SwiftUI
 import FirebaseDatabase
+import UIKit
+import FirebaseCore
 
 // ... Paste AppointmentsView, AppointmentCard, PhotoGallerySheet, StatusBadge here ... 
 
@@ -96,6 +98,10 @@ struct AppointmentsView: View {
 struct AppointmentCard: View {
     let appointment: Appointment
     @State private var showPhotos = false
+    @State private var showEmailAlert = false
+    @State private var emailSent = false
+    @State private var isLoading = false
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -184,6 +190,31 @@ struct AppointmentCard: View {
                     .padding(.top, 8)
                 }
             }
+            
+            // Randevuyu Erkene Al button
+            Button(action: {
+                isLoading = true
+                sendEmailNotification()
+            }) {
+                HStack {
+                    if isLoading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .scaleEffect(0.8)
+                    } else {
+                        Image(systemName: "arrow.clockwise")
+                            .foregroundColor(.white)
+                        Text("Randevuyu Erkene Al")
+                            .foregroundColor(.white)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(AppColors.accentColor)
+                .cornerRadius(10)
+            }
+            .disabled(isLoading)
+            .padding(.top, 12)
         }
         .padding()
         .background(Color.white)
@@ -191,6 +222,50 @@ struct AppointmentCard: View {
         .shadow(color: Color.black.opacity(0.1), radius: 5)
         .sheet(isPresented: $showPhotos) {
             PhotoGallerySheet(photos: appointment.photos)
+        }
+        .alert(isPresented: $showEmailAlert) {
+            Alert(
+                title: Text(emailSent ? "Başarılı" : "Hata"),
+                message: Text(emailSent ? 
+                    "Randevu değişikliği talebi e-posta olarak gönderildi." : 
+                    "E-posta gönderilirken bir hata oluştu. Lütfen tekrar deneyin."),
+                dismissButton: .default(Text("Tamam")) {
+                    isLoading = false
+                }
+            )
+        }
+    }
+    
+    private func sendEmailNotification() {
+        let ref = Database.database().reference()
+        let mailNotificationsRef = ref.child("mail_notifications").childByAutoId()
+        
+        let mailData: [String: Any] = [
+            "to": appointment.userEmail,
+            "subject": "Önemli: Randevu Bilgilendirmesi",
+            "message": """
+            Sayın \(appointment.userName),
+            
+            \(appointment.date) tarihinde saat \(appointment.time)'da olan randevunuz için daha erken kliniğimize gelmeniz gerekmektedir.
+            
+            Bilgilerinize sunarız.
+            
+            İyi günler dileriz.
+            """,
+            "timestamp": ServerValue.timestamp(),
+            "status": "pending"
+        ]
+        
+        mailNotificationsRef.setValue(mailData) { error, _ in
+            DispatchQueue.main.async {
+                isLoading = false
+                emailSent = error == nil
+                showEmailAlert = true
+                
+                if let error = error {
+                    print("Error sending email notification: \(error.localizedDescription)")
+                }
+            }
         }
     }
 }
