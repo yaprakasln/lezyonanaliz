@@ -138,11 +138,11 @@ struct PatientAnalysisView: View {
                             if let image = selectedImage {
                                 // Seçilen görüntü
                                 ZStack {
-                                    Image(uiImage: image)
-                                        .resizable()
-                                        .scaledToFill()
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .scaledToFill()
                                         .frame(height: 220)
-                                        .frame(maxWidth: .infinity)
+                                    .frame(maxWidth: .infinity)
                                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                         .overlay(
                                             RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -193,7 +193,7 @@ struct PatientAnalysisView: View {
                                                     startPoint = value.location
                                                     endPoint = value.location
                                                     isMeasuring = true
-                                                } else {
+                            } else {
                                                     endPoint = value.location
                                                     
                                                     // Mesafeyi hesapla
@@ -279,7 +279,7 @@ struct PatientAnalysisView: View {
                                     // Arkaplan
                                     Rectangle()
                                         .foregroundColor(.white)
-                                        .frame(height: 220)
+                                        .frame(height: 250)
                                         .cornerRadius(16, corners: [.topLeft, .topRight])
                                         .overlay(
                                             RoundedRectangle(cornerRadius: 16)
@@ -288,34 +288,35 @@ struct PatientAnalysisView: View {
                                         )
                                     
                                     // Modern Medikal Icon
-                                    VStack(spacing: 16) {
+                                    VStack(spacing: 20) {
                                         ZStack {
                                             // Dış daire
                                             Circle()
                                                 .fill(Color(#colorLiteral(red: 0.9607843161, green: 0.9764705896, blue: 0.9921568627, alpha: 1)))
-                                                .frame(width: 110, height: 110)
+                                                .frame(width: 120, height: 120)
                                                 .shadow(color: Color(#colorLiteral(red: 0.1764705926, green: 0.4980392158, blue: 0.7568627596, alpha: 0.1)), radius: 10, x: 0, y: 5)
                                             
                                             // İç daire
                                             Circle()
                                                 .stroke(Color(#colorLiteral(red: 0.1764705926, green: 0.4980392158, blue: 0.7568627596, alpha: 0.2)), lineWidth: 2)
-                                                .frame(width: 90, height: 90)
+                                                .frame(width: 100, height: 100)
                                             
                                             // Gölge efekti
-                                            Image(systemName: "plus.viewfinder")
-                                                .font(.system(size: 32, weight: .light))
+                                            Image(systemName: "photo.on.rectangle.angled")
+                                                .font(.system(size: 40, weight: .light))
                                                 .foregroundColor(Color(#colorLiteral(red: 0.1764705926, green: 0.4980392158, blue: 0.7568627596, alpha: 0.8)))
                                         }
                                         
-                                        Text("Lezyon fotoğrafı ekleyin")
-                                            .font(.system(size: 15, weight: .medium, design: .default))
-                                            .foregroundColor(Color(#colorLiteral(red: 0.1764705926, green: 0.4980392158, blue: 0.7568627596, alpha: 0.7)))
+                                        Text("Lezyon Fotoğrafı Ekleyin")
+                                            .font(.system(size: 18, weight: .medium, design: .default))
+                                            .foregroundColor(Color(#colorLiteral(red: 0.1764705926, green: 0.4980392158, blue: 0.7568627596, alpha: 0.8)))
                                         
-                                        Text("Daha doğru analiz için net ve yakın çekim görüntü yükleyin")
-                                            .font(.system(size: 13, weight: .regular, design: .default))
+                                        Text("Fotoğraf eklemek için aşağıdaki butonları kullanın")
+                                            .font(.system(size: 14, weight: .regular, design: .default))
                                             .foregroundColor(Color.gray.opacity(0.8))
                                             .multilineTextAlignment(.center)
-                                            .padding(.horizontal, 40)
+                                            .padding(.horizontal, 45)
+                                            .padding(.top, 5)
                                     }
                                 }
                             }
@@ -326,13 +327,13 @@ struct PatientAnalysisView: View {
                                 Button(action: { showImagePicker = true }) {
                                     HStack(spacing: 12) {
                                         Image(systemName: "photo.fill")
-                                            .font(.system(size: 16, weight: .medium))
+                                            .font(.system(size: 18, weight: .medium))
                                         Text("Galeri")
-                                            .font(.system(size: 16, weight: .medium, design: .default))
+                                            .font(.system(size: 17, weight: .medium, design: .default))
                                     }
                                     .foregroundColor(Color.white)
                                     .frame(maxWidth: .infinity)
-                                    .frame(height: 50)
+                                    .frame(height: 56)
                                     .background(
                                         LinearGradient(
                                             gradient: Gradient(colors: [Color(#colorLiteral(red: 0.1764705926, green: 0.4980392158, blue: 0.7568627596, alpha: 1)), Color(#colorLiteral(red: 0.2392156869, green: 0.6745098233, blue: 0.9686274529, alpha: 1))]),
@@ -347,13 +348,13 @@ struct PatientAnalysisView: View {
                                 Button(action: { showCamera = true }) {
                                     HStack(spacing: 12) {
                                         Image(systemName: "camera.fill")
-                                            .font(.system(size: 16, weight: .medium))
+                                            .font(.system(size: 18, weight: .medium))
                                         Text("Kamera")
-                                            .font(.system(size: 16, weight: .medium, design: .default))
+                                            .font(.system(size: 17, weight: .medium, design: .default))
                                     }
                                     .foregroundColor(Color.white)
                                     .frame(maxWidth: .infinity)
-                                    .frame(height: 50)
+                                    .frame(height: 56)
                                     .background(
                                         LinearGradient(
                                             gradient: Gradient(colors: [Color(#colorLiteral(red: 0.1764705926, green: 0.4980392158, blue: 0.7568627596, alpha: 1)), Color(#colorLiteral(red: 0.2392156869, green: 0.6745098233, blue: 0.9686274529, alpha: 1))]),
@@ -364,7 +365,7 @@ struct PatientAnalysisView: View {
                                     .clipShape(Capsule())
                                 }
                             }
-                            .padding(20)
+                            .padding(25)
                             .background(
                                 Rectangle()
                                     .foregroundColor(.white)
@@ -622,15 +623,15 @@ struct PatientAnalysisView: View {
                         // Analiz butonu - daha profesyonel tasarım
                         if selectedImage != nil {
                             Button(action: analyzeImage) {
-                                HStack(spacing: 12) {
+                                HStack(spacing: 15) {
                                     Image(systemName: "waveform.path.ecg")
-                                        .font(.system(size: 18, weight: .medium))
+                                        .font(.system(size: 20, weight: .medium))
                                     Text("Analiz Et")
-                                        .font(.system(size: 18, weight: .semibold, design: .default))
+                                        .font(.system(size: 20, weight: .semibold, design: .default))
                                 }
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
-                                .frame(height: 56)
+                                .frame(height: 60)
                                 .background(
                                     LinearGradient(
                                         gradient: Gradient(colors: [Color(#colorLiteral(red: 0.1764705926, green: 0.4980392158, blue: 0.7568627596, alpha: 1)), Color(#colorLiteral(red: 0.2392156869, green: 0.6745098233, blue: 0.9686274529, alpha: 1))]),
@@ -640,12 +641,14 @@ struct PatientAnalysisView: View {
                                 )
                                 .clipShape(Capsule())
                                 .shadow(color: Color(#colorLiteral(red: 0.1764705926, green: 0.4980392158, blue: 0.7568627596, alpha: 1)).opacity(0.4), radius: 8, x: 0, y: 4)
-                                .padding(.horizontal)
+                                .padding(.horizontal, 25)
+                                .padding(.vertical, 10)
                                 .overlay(
                                     Capsule()
                                         .stroke(Color.white, lineWidth: 1)
                                         .blur(radius: 0.5)
-                                        .padding(.horizontal)
+                                        .padding(.horizontal, 25)
+                                        .padding(.vertical, 10)
                                 )
                             }
                         }
@@ -706,32 +709,32 @@ struct PatientAnalysisView: View {
                         if let result = analysisResult, !isAnalyzing {
                             VStack(alignment: .leading, spacing: 0) {
                                 // Sonuç başlığı
-                                VStack(alignment: .leading, spacing: 12) {
+                                VStack(alignment: .leading, spacing: 16) {
                                     HStack {
                                         Text("Analiz Sonucu")
-                                            .font(.system(size: 20, weight: .bold, design: .default))
+                                            .font(.system(size: 22, weight: .bold, design: .default))
                                             .foregroundColor(Color(#colorLiteral(red: 0.1215686277, green: 0.1294117719, blue: 0.1411764771, alpha: 1)))
                                         
                                         Spacer()
                                         
                                         // Güven oranı göstergesi
                                         if confidence > 0 {
-                                            HStack(spacing: 4) {
+                                            HStack(spacing: 8) {
                                                 Text("Güven:")
-                                                    .font(.system(size: 14))
+                                                    .font(.system(size: 14, weight: .medium))
                                                     .foregroundColor(.gray)
                                                 
                                                 ZStack(alignment: .leading) {
                                                     RoundedRectangle(cornerRadius: 4)
                                                         .fill(Color.gray.opacity(0.2))
-                                                        .frame(width: 50, height: 8)
+                                                        .frame(width: 60, height: 8)
                                                     
                                                     RoundedRectangle(cornerRadius: 4)
                                                         .fill(
                                                             confidence > 0.8 ? Color.green : 
                                                                 (confidence > 0.5 ? Color.orange : Color.red)
                                                         )
-                                                        .frame(width: 50 * CGFloat(confidence), height: 8)
+                                                        .frame(width: 60 * CGFloat(confidence), height: 8)
                                                 }
                                                 
                                                 Text("\(Int(confidence * 100))%")
@@ -740,6 +743,7 @@ struct PatientAnalysisView: View {
                                                         confidence > 0.8 ? Color.green : 
                                                             (confidence > 0.5 ? Color.orange : Color.red)
                                                     )
+                                                    .frame(width: 40, alignment: .leading)
                                             }
                                         }
                                     }
@@ -753,41 +757,48 @@ struct PatientAnalysisView: View {
                                         Text("\(urgencyLevel.rawValue) Öncelik")
                                             .font(.system(size: 14, weight: .semibold))
                                             .foregroundColor(urgencyLevel.color)
-                                            .padding(.horizontal, 10)
-                                            .padding(.vertical, 4)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 6)
                                             .background(urgencyLevel.color.opacity(0.15))
                                             .cornerRadius(12)
                                     }
                                 }
-                                .padding(.top, 20)
+                                .padding(.top, 22)
                                 .padding(.horizontal, 20)
                                 
                                 Divider()
-                                    .padding(.vertical, 15)
+                                    .padding(.vertical, 18)
                                     .padding(.horizontal, 20)
                                 
                                 // Sonuç detayları
-                                VStack(alignment: .leading, spacing: 16) {
+                                VStack(alignment: .leading, spacing: 24) {
                                     // Teşhis
-                                    Text(result)
-                                        .font(.system(size: 16, design: .default))
-                                        .foregroundColor(Color(#colorLiteral(red: 0.2549019754, green: 0.2745098174, blue: 0.3019607961, alpha: 1)))
-                                        .padding(.horizontal, 20)
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        Text("Teşhis:")
+                                            .font(.system(size: 16, weight: .medium, design: .default))
+                                            .foregroundColor(Color(#colorLiteral(red: 0.4, green: 0.4, blue: 0.4, alpha: 1)))
+                                        
+                                        Text(result)
+                                            .font(.system(size: 17, design: .default))
+                                            .foregroundColor(Color(#colorLiteral(red: 0.2549019754, green: 0.2745098174, blue: 0.3019607961, alpha: 1)))
+                                            .padding(.top, 2)
+                                    }
+                                    .padding(.horizontal, 20)
                                     
                                     // Aciliyet açıklaması
                                     VStack(alignment: .leading, spacing: 8) {
                                         Text("Öneri:")
-                                            .font(.system(size: 14, weight: .semibold, design: .default))
-                                            .foregroundColor(Color(#colorLiteral(red: 0.501960814, green: 0.501960814, blue: 0.501960814, alpha: 1)))
+                                            .font(.system(size: 16, weight: .medium, design: .default))
+                                            .foregroundColor(Color(#colorLiteral(red: 0.4, green: 0.4, blue: 0.4, alpha: 1)))
                                         
                                         Text(urgencyLevel.description)
-                                            .font(.system(size: 14, design: .default))
+                                            .font(.system(size: 15, design: .default))
                                             .foregroundColor(Color(#colorLiteral(red: 0.2549019754, green: 0.2745098174, blue: 0.3019607961, alpha: 1)))
                                             .fixedSize(horizontal: false, vertical: true)
-                                            .padding(.leading, 2)
+                                            .padding(.top, 2)
+                                            .lineSpacing(4)
                                     }
                                     .padding(.horizontal, 20)
-                                    .padding(.bottom, 10)
                                     
                                     // Randevu erkene alma talebi
                                     if urgencyLevel == .high || urgencyLevel == .urgent {
@@ -798,10 +809,10 @@ struct PatientAnalysisView: View {
                                                     .font(.system(size: 16))
                                                 
                                                 Text("Randevu erkene alma talebiniz gönderildi")
-                                                    .font(.system(size: 14, weight: .medium, design: .default))
+                                                    .font(.system(size: 15, weight: .medium, design: .default))
                                                     .foregroundColor(.green)
                                             }
-                                            .padding(.vertical, 12)
+                                            .padding(.vertical, 14)
                                             .padding(.horizontal, 20)
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                             .background(Color.green.opacity(0.1))
@@ -811,11 +822,11 @@ struct PatientAnalysisView: View {
                                                     Image(systemName: "calendar.badge.clock")
                                                         .font(.system(size: 16))
                                                     Text("Randevu Erkene Alma Talebi Gönder")
-                                                        .font(.system(size: 15, weight: .medium, design: .default))
+                                                        .font(.system(size: 16, weight: .medium, design: .default))
                                                 }
                                                 .foregroundColor(.white)
                                                 .frame(maxWidth: .infinity)
-                                                .frame(height: 50)
+                                                .frame(height: 55)
                                                 .background(
                                                     LinearGradient(
                                                         gradient: Gradient(colors: [urgencyLevel.color, urgencyLevel.color.opacity(0.8)]),
@@ -827,23 +838,24 @@ struct PatientAnalysisView: View {
                                                 .shadow(color: urgencyLevel.color.opacity(0.4), radius: 5, x: 0, y: 3)
                                             }
                                             .padding(.horizontal, 20)
-                                            .padding(.vertical, 5)
+                                            .padding(.vertical, 12)
                                         }
                                     }
                                     
                                     // Uyarı notu
-                                    HStack(spacing: 10) {
+                                    HStack(spacing: 12) {
                                         Image(systemName: "info.circle.fill")
                                             .foregroundColor(Color.gray.opacity(0.7))
-                                            .font(.system(size: 12))
+                                            .font(.system(size: 14))
                                         
                                         Text("Not: Bu sonuç ön değerlendirmedir ve kesin tanı için doktorunuza başvurunuz.")
-                                            .font(.system(size: 12, design: .default))
+                                            .font(.system(size: 13, design: .default))
                                             .foregroundColor(Color(#colorLiteral(red: 0.501960814, green: 0.501960814, blue: 0.501960814, alpha: 1)))
+                                            .lineSpacing(2)
                                     }
                                     .padding(.horizontal, 20)
-                                    .padding(.top, 10)
-                                    .padding(.bottom, 20)
+                                    .padding(.top, 6)
+                                    .padding(.bottom, 24)
                                 }
                             }
                             .background(Color.white)
@@ -854,7 +866,7 @@ struct PatientAnalysisView: View {
                             )
                             .shadow(color: Color.black.opacity(0.08), radius: 15, x: 0, y: 10)
                             .padding(.horizontal)
-                            .padding(.bottom, 20)
+                            .padding(.bottom, 30)
                             .transition(.opacity)
                             .animation(.easeInOut(duration: 0.5), value: showResultCard)
                             .onAppear {
